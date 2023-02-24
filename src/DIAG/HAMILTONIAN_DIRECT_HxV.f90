@@ -89,10 +89,12 @@ contains
     complex(8),dimension(Nloc)          :: Hv
     complex(8),dimension(:),allocatable :: vin
     integer,dimension(2*Ns)             :: ib
-    integer,dimension(eNs)              :: Nup,Ndw
-    real(8),dimension(eNs)              :: Sz
-    integer,dimension(iNs)              :: NpUp,NpDw
-    real(8),dimension(iNs)              :: Szp
+    integer,dimension(Ns)               :: Nup,Ndw
+    integer,dimension(eNs)              :: Nele_up,Nele_dw
+    integer,dimension(iNs)              :: Nimp_up,Nimp_dw
+    real(8),dimension(Ns)               :: Sz
+    real(8),dimension(eNs)              :: Sele_z
+    real(8),dimension(iNs)              :: Simp_z
     integer                             :: io_up,io_dw,imp_up,imp_dw
     complex(8),dimension(Nspin,eNs,eNs) :: Hij,Hloc
     real(8),dimension(Nspin,eNs)        :: Hdiag
@@ -124,12 +126,17 @@ contains
     states: do j=MpiIstart,MpiIend
        m   = Hsector%H(1)%map(j)
        ib  = bdecomp(m,2*Ns)
-       Nup = ib(1:eNs)
-       Ndw = ib(eNs+1:2*eNs)
-       NpUp= ib(2*eNs+1:2*eNs+iNs)
-       NpDw= ib(2*eNs+iNs+1:2*eNs+2*iNs)
-       Sz  = 0.5d0*(Nup-Ndw)
-       Szp = 0.5d0*(NpUp-NpDw)
+       !
+       Nele_up = ib(1:eNs)
+       Nele_dw = ib(eNs+1:2*eNs)
+       Nimp_up = ib(2*eNs+1:2*eNs+iNs)
+       Nimp_dw = ib(2*eNs+iNs+1:2*eNs+2*iNs)
+       Nup     = [Nele_up,Nimp_up]
+       Ndw     = [Nele_dw,Nimp_dw]
+       Sele_z  = 0.5d0*(Nele_up - Nele_dw)
+       Simp_z  = 0.5d0*(Nimp_up - Nimp_dw)
+       Sz      = 0.5d0*(Nup-Ndw)
+       !
        !LOCAL HAMILTONIAN TERMS
        include "direct/HxV_diag.f90"
        !

@@ -436,7 +436,7 @@ contains
     real(8)                             :: state_weight
     real(8)                             :: temp_
     real(8),dimension(Nspin,Norb)       :: eloc
-    complex(8),dimension(:),pointer     :: evec
+    complex(8),dimension(:),pointer     :: state_cvec
     logical                             :: Jcondition
     integer,dimension(Ns)               :: IbUp,IbDw  ![Ns]
     integer,dimension(2*Ns)             :: ib
@@ -484,7 +484,7 @@ contains
           boltzman_weight=exp(-Ei/temp_)/zeta_function
           if(boltzman_weight < cutoff)cycle
           !
-          evec => espace(isector)%M(:,istate)
+          state_cvec => espace(isector)%M(:,istate)
           !
           do i=1,sectorI%Dim
              !
@@ -500,7 +500,7 @@ contains
              Simp_z  = 0.5d0*(Nimp_up - Nimp_dw)
              Sz      = 0.5d0*(Nup-Ndw)
              !
-             state_weight = conjg(evec(i))*evec(i)
+             state_weight = conjg(state_cvec(i))*state_cvec(i)
              !
              !start evaluating the Tr(H_loc) to estimate potential energy
              !
@@ -734,7 +734,7 @@ contains
        enddo
        !
        call delete_sector(sectorI)
-       if(associated(evec))nullify(evec)
+       if(associated(state_cvec))nullify(state_cvec)
     enddo
     !
     ed_Epot = ed_Epot + ed_Ehartree

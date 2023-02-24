@@ -51,6 +51,7 @@ module ED_GRAPH_MATRIX
 
 
   !
+  public :: Hij_status
   public :: Hij_init
   public :: Hij_delete
   public :: Hij_info
@@ -74,6 +75,10 @@ module ED_GRAPH_MATRIX
 contains
 
 
+  function Hij_status() result(bool)
+    logical :: bool
+    bool = Self%status
+  end function Hij_status
 
 
   !< Setup/Delete the default structure

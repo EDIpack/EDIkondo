@@ -44,7 +44,7 @@ contains
     !
     !
     !Check Hmatrix is allocated:
-    if(.not.Hmatrix%status)stop "ED_INIT_SOLVER ERROR: Hmatrix is not allocated"
+    if(.not.Hij_status())stop "ED_INIT_SOLVER ERROR: Hmatrix is not allocated"
     !
     call setup_global
     !
@@ -67,7 +67,7 @@ contains
     !
     if(MpiMaster)call save_input_file(str(ed_input_file))
     !
-    if(.not.Hmatrix%status)stop "ED_INIT_SOLVER ERROR: Hmatrix is not allocated"
+    if(.not.Hij_status())stop "ED_INIT_SOLVER ERROR: Hmatrix is not allocated"
     call Hij_write(unit=LOGfile)
     !
     !SOLVE THE QUANTUM IMPURITY PROBLEM:
