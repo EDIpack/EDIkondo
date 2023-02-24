@@ -1,0 +1,15 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}/bin
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: ED_Kondo
+Description: The ED_Kondo library
+Cflags: -I${includedir}
+Libs: -L${libdir} -led_kondo
+Version:@VERSION@
+
+	
+
+
+ 
