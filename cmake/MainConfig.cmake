@@ -17,8 +17,8 @@ IF(PREFIX STREQUAL "${PREFIX_DEF_LOC}")
   SET(USE_DEFAULT_MODULE_NAME TRUE)
 ENDIF()
 
-#if not master branch, include simplified branch name
-IF( (NOT GIT_BRANCH MATCHES "master") )
+#if not main branch, include simplified branch name
+IF( (NOT GIT_BRANCH MATCHES "main") )
     SET(PREFIX_PATH  "${PREFIX_PATH}/${GIT_BRANCH}")
 ENDIF()
 
