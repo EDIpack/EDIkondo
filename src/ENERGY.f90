@@ -84,8 +84,8 @@ contains
     real(8),dimension(Ns)               :: Sz
     real(8),dimension(eNs)              :: Sele_z
     real(8),dimension(iNs)              :: Simp_z
-    complex(8),dimension(Nspin,eNs,eNs) :: Hij,Hloc
-    complex(8),dimension(Nspin,eNs)     :: Hdiag
+    complex(8),dimension(Nspin,Ns,Ns)   :: Hij,Hloc
+    complex(8),dimension(Nspin,Ns)      :: Hdiag
     complex(8),dimension(:),allocatable :: state_cvec
     real(8)                             :: boltzman_weight
     real(8)                             :: state_weight
@@ -134,6 +134,7 @@ contains
              !
              call build_op_Ns(i,IbUp,Ibdw,sectorI)
              m  = sectorI%H(1)%map(i)
+             ib = bdecomp(m,2*Ns)
              Nele_up = ib(1:eNs)
              Nele_dw = ib(eNs+1:2*eNs)
              Nimp_up = ib(2*eNs+1:2*eNs+iNs)
@@ -148,32 +149,7 @@ contains
              !
              !> H_Imp: Diagonal Elements, i.e. local part
              do io=1,Ns
-                ed_Eknot = ed_Eknot + Hdiag(1,io)*Nup(io)*state_weight*boltzman_weight
-                ed_Eknot = ed_Eknot + Hdiag(Nspin,io)*Ndw(io)*state_weight*boltzman_weight
-             enddo
-             !
-             !> H_imp: Off-diagonal elements, i.e. non-local part.
-             do io=1,Ns
-                do jo=1,Ns
-                   !UP electrons
-                   Jcondition = (Hij(1,io,jo)/=zero) .AND. (nup(jo)==1) .AND. (nup(io)==0)
-                   if (Jcondition) then
-                      call c(jo,m,k1,sg1)
-                      call cdg(io,k1,k2,sg2)
-                      j    = binary_search(sectorI%H(1)%map,k2)
-                      ed_Ekin = ed_Ekin + &
-                           Hij(1,io,jo)*sg1*sg2*state_cvec(i)*conjg(state_cvec(j))*boltzman_weight
-                   endif
-                   !DW electrons
-                   Jcondition = (Hij(Nspin,io,jo)/=zero) .AND. (ndw(jo)==1) .AND. (ndw(io)==0)
-                   if (Jcondition) then
-                      call c(jo+eNs,m,k1,sg1)
-                      call cdg(io+eNs,k1,k2,sg2)
-                      j    = binary_search(sectorI%H(1)%map,k2)
-                      ed_Ekin = ed_Ekin + &
-                           Hij(Nspin,io,jo)*sg1*sg2*state_cvec(i)*conjg(state_cvec(j))*boltzman_weight
-                   endif
-                enddo
+                ed_Eknot = ed_Eknot + (Hdiag(1,io)*Nup(io)+Hdiag(Nspin,io)*Ndw(io))*state_weight*boltzman_weight
              enddo
              !
              !Euloc=\sum=i U_i*(n_u*n_d)_i
@@ -235,9 +211,36 @@ contains
              endif
              !
              !
+             !> H_imp: Off-diagonal elements, i.e. non-local part.
+             m  = sectorI%H(1)%map(i)
+             do io=1,Ns
+                do jo=1,Ns
+                   !UP electrons
+                   Jcondition = (Hij(1,io,jo)/=zero) .AND. (nup(jo)==1) .AND. (nup(io)==0)                   
+                   if (Jcondition) then
+                      call c(ket_site_index(jo,1),m,k1,sg1)
+                      call cdg(ket_site_index(io,1),k1,k2,sg2)
+                      j    = binary_search(sectorI%H(1)%map,k2)
+                      ed_Ekin = ed_Ekin + &
+                           Hij(1,io,jo)*sg1*sg2*state_cvec(i)*conjg(state_cvec(j))*boltzman_weight
+                   endif
+                   !DW electrons
+                   Jcondition = (Hij(Nspin,io,jo)/=zero) .AND. (ndw(jo)==1) .AND. (ndw(io)==0)
+                   if (Jcondition) then
+                      call c(ket_site_index(jo,2),m,k1,sg1)
+                      call cdg(ket_site_index(io,2),k1,k2,sg2)
+                      j    = binary_search(sectorI%H(1)%map,k2)
+                      ed_Ekin = ed_Ekin + &
+                           Hij(Nspin,io,jo)*sg1*sg2*state_cvec(i)*conjg(state_cvec(j))*boltzman_weight
+                   endif
+                enddo
+             enddo
+             !
+             !
              !
              !SPIN-EXCHANGE Jx
              if(Jx/=0d0)then
+                m  = sectorI%H(1)%map(i)
                 do iorb=1,Norb
                    do jorb=1,Norb
                       do isite=1,Nsites(iorb)
@@ -268,6 +271,7 @@ contains
              !
              ! PAIR-HOPPING Jp
              if(Jp/=0d0)then
+                m  = sectorI%H(1)%map(i)
                 do iorb=1,Norb
                    do jorb=1,Norb
                       do isite=1,Nsites(iorb)
@@ -307,6 +311,7 @@ contains
                 enddo
              enddo
              !
+             m  = sectorI%H(1)%map(i)
              do iimp=1,iNs
                 do iorb=1,Norb
                    do isite=1,Nsites(iorb)
@@ -369,6 +374,8 @@ contains
                    enddo
                 enddo
              endif
+             !
+             !
           enddo
           call delete_sector(sectorI)         
        endif
@@ -446,8 +453,8 @@ contains
     real(8),dimension(Ns)               :: Sz
     real(8),dimension(eNs)              :: Sele_z
     real(8),dimension(iNs)              :: Simp_z
-    complex(8),dimension(Nspin,eNs,eNs) :: Hij,Hloc
-    complex(8),dimension(Nspin,eNs)     :: Hdiag
+    complex(8),dimension(Nspin,Ns,Ns)   :: Hij,Hloc
+    complex(8),dimension(Nspin,Ns)      :: Hdiag
     integer                             :: Iups(1)
     integer                             :: Idws(1)
     integer                             :: io_up,imp_up,io_dw,imp_dw

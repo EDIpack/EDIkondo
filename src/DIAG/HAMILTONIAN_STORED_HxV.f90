@@ -29,7 +29,7 @@ contains
     real(8),dimension(eNs)              :: Sele_z
     real(8),dimension(iNs)              :: Simp_z
     complex(8),dimension(Nspin,Ns,Ns)   :: Hij,Hloc
-    real(8),dimension(Nspin,eNs)        :: Hdiag
+    real(8),dimension(Nspin,Ns)         :: Hdiag
     integer                             :: io_up,io_dw,imp_up,imp_dw
     !
 #ifdef _MPI

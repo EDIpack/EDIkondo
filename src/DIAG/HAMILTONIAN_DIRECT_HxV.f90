@@ -21,8 +21,8 @@ contains
     complex(8),dimension(Nloc)          :: vin
     complex(8),dimension(Nloc)          :: Hv
     complex(8),dimension(:),allocatable :: vt,Hvt
-    complex(8),dimension(Nspin,eNs,eNs) :: Hij,Hloc
-    real(8),dimension(Nspin,eNs)        :: Hdiag
+    complex(8),dimension(Nspin,Ns,Ns)   :: Hij,Hloc
+    real(8),dimension(Nspin,Ns)         :: Hdiag
     integer,dimension(2*Ns)             :: ib
     integer,dimension(Ns)               :: Nup,Ndw
     integer,dimension(eNs)              :: Nele_up,Nele_dw
@@ -96,8 +96,8 @@ contains
     real(8),dimension(eNs)              :: Sele_z
     real(8),dimension(iNs)              :: Simp_z
     integer                             :: io_up,io_dw,imp_up,imp_dw
-    complex(8),dimension(Nspin,eNs,eNs) :: Hij,Hloc
-    real(8),dimension(Nspin,eNs)        :: Hdiag
+    complex(8),dimension(Nspin,Ns,Ns)   :: Hij,Hloc
+    real(8),dimension(Nspin,Ns)         :: Hdiag
     !
     if(.not.Hsector%status)stop "directMatVec_cc ERROR: Hsector NOT allocated"
     isector=Hsector%index    

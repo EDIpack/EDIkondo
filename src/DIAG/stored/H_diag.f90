@@ -12,12 +12,6 @@
      htmp = zero
      !
      !> H: Diagonal Elements, i.e. local part
-     ! do io=1,eNs
-     !    htmp = htmp + Hdiag(1,io)*Nele_up(io) + Hdiag(Nspin,io)*Nele_dw(io)
-     ! enddo
-     ! do iimp=1,iNs
-     !    htmp = htmp + e_imp(1)*Nimp_Up(iimp) + e_imp(Nspin)*Nimp_Dw(iimp)
-     ! enddo
      do io=1,Ns
         htmp = htmp + Hdiag(1,io)*Nup(io) + Hdiag(Nspin,io)*Ndw(io)
      enddo

@@ -40,7 +40,7 @@ contains
     call deallocate_GFmatrix(OcMatrix)
     !
     if(allocated(Hij))deallocate(Hij)
-    allocate(Hij(Nspin,eNs,eNs))
+    allocate(Hij(Nspin,Ns,Ns))
     call Hij_get(Hij)
     !
     select case(ed_method)
@@ -67,7 +67,7 @@ contains
     integer :: iorb
     !
     if(allocated(Hij))deallocate(Hij)
-    allocate(Hij(Nspin,eNs,eNs))
+    allocate(Hij(Nspin,Ns,Ns))
     call Hij_get(Hij)
     !
     do iorb=1,Norb
