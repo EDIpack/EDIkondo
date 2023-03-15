@@ -63,12 +63,6 @@
         do io=1,Ns
            htmp = htmp - xmu*( Nup(io)+Ndw(io) )
         enddo
-        ! do io=1,eNs
-        !    htmp = htmp - xmu*( Nele_up(io)+Nele_dw(io) )
-        ! enddo
-        ! do iimp=1,iNs
-        !    htmp = htmp - xmu*( Nimp_Up(iimp)+Nimp_Dw(iimp) )
-        ! enddo
         !
         if(hfmode)then
            if(any(Uloc/=0d0))then

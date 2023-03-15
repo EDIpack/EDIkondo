@@ -135,6 +135,7 @@ contains
              call build_op_Ns(i,IbUp,Ibdw,sectorI)
              m  = sectorI%H(1)%map(i)
              ib = bdecomp(m,2*Ns)
+             !
              Nele_up = ib(1:eNs)
              Nele_dw = ib(eNs+1:2*eNs)
              Nimp_up = ib(2*eNs+1:2*eNs+iNs)
@@ -216,19 +217,19 @@ contains
              do io=1,Ns
                 do jo=1,Ns
                    !UP electrons
-                   Jcondition = (Hij(1,io,jo)/=zero) .AND. (nup(jo)==1) .AND. (nup(io)==0)                   
+                   Jcondition = (Hij(1,io,jo)/=zero) .AND. (Nup(jo)==1) .AND. (Nup(io)==0)
                    if (Jcondition) then
-                      call c(ket_site_index(jo,1),m,k1,sg1)
-                      call cdg(ket_site_index(io,1),k1,k2,sg2)
+                      call c(ket_index(jo,1),m,k1,sg1)
+                      call cdg(ket_index(io,1),k1,k2,sg2)
                       j    = binary_search(sectorI%H(1)%map,k2)
                       ed_Ekin = ed_Ekin + &
                            Hij(1,io,jo)*sg1*sg2*state_cvec(i)*conjg(state_cvec(j))*boltzman_weight
                    endif
                    !DW electrons
-                   Jcondition = (Hij(Nspin,io,jo)/=zero) .AND. (ndw(jo)==1) .AND. (ndw(io)==0)
+                   Jcondition = (Hij(Nspin,io,jo)/=zero) .AND. (Ndw(jo)==1) .AND. (Ndw(io)==0)
                    if (Jcondition) then
-                      call c(ket_site_index(jo,2),m,k1,sg1)
-                      call cdg(ket_site_index(io,2),k1,k2,sg2)
+                      call c(ket_index(jo,2),m,k1,sg1)
+                      call cdg(ket_index(io,2),k1,k2,sg2)
                       j    = binary_search(sectorI%H(1)%map,k2)
                       ed_Ekin = ed_Ekin + &
                            Hij(Nspin,io,jo)*sg1*sg2*state_cvec(i)*conjg(state_cvec(j))*boltzman_weight
@@ -497,6 +498,8 @@ contains
              !
              call build_op_Ns(i,IbUp,Ibdw,sectorI)
              m  = sectorI%H(1)%map(i)
+             ib  = bdecomp(m,2*Ns)
+
              Nele_up = ib(1:eNs)
              Nele_dw = ib(eNs+1:2*eNs)
              Nimp_up = ib(2*eNs+1:2*eNs+iNs)
@@ -524,8 +527,8 @@ contains
                    !UP electrons
                    Jcondition = (Hij(1,io,jo)/=zero) .AND. (nup(jo)==1) .AND. (nup(io)==0)
                    if (Jcondition) then
-                      call c(jo,m,k1,sg1)
-                      call cdg(io,k1,k2,sg2)
+                      call c(ket_index(jo,1),m,k1,sg1)
+                      call cdg(ket_index(io,1),k1,k2,sg2)
                       j    = binary_search(sectorI%H(1)%map,k2)
                       ed_Ekin = ed_Ekin + &
                            Hij(1,io,jo)*sg1*sg2*state_cvec(i)*conjg(state_cvec(j))*boltzman_weight
@@ -533,8 +536,8 @@ contains
                    !DW electrons
                    Jcondition = (Hij(Nspin,io,jo)/=zero) .AND. (ndw(jo)==1) .AND. (ndw(io)==0)
                    if (Jcondition) then
-                      call c(jo+eNs,m,k1,sg1)
-                      call cdg(io+eNs,k1,k2,sg2)
+                      call c(ket_index(jo,2),m,k1,sg1)
+                      call cdg(ket_index(io,2),k1,k2,sg2)
                       j    = binary_search(sectorI%H(1)%map,k2)
                       ed_Ekin = ed_Ekin + &
                            Hij(Nspin,io,jo)*sg1*sg2*state_cvec(i)*conjg(state_cvec(j))*boltzman_weight
