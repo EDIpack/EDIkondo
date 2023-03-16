@@ -6,15 +6,15 @@ set version "(@FULL_VER@)"
 set compiler @CMAKE_Fortran_COMPILER@
   
 proc ModulesHelp { } {
-        puts stderr "\tThis module provides access to ED_Kondo library\n";
+        puts stderr "\tThis module provides access to Kondo_ED library\n";
 	puts stderr "\tVersion $version\n"
 	puts stderr "\t compiled with $compiler\n"	
 }
 
-module-whatis "ED_Kondo Fortran library"
+module-whatis "Kondo_ED Fortran library"
 
 
-setenv       ED_KONDO_ROOT  		 $root
+setenv       KONDO_ED_ROOT  		 $root
 setenv	     FC			 $compiler
 setenv	     F90		 $compiler
 prepend-path LD_LIBRARY_PATH    "$root/lib"
@@ -22,5 +22,5 @@ prepend-path LIBRARY_PATH       "$root/lib"
 prepend-path PATH		"$root/bin"
 prepend-path PKG_CONFIG_PATH	"$root/etc"
 
-puts stderr " > (un)load ED_Kondo $version"
+puts stderr " > (un)load Kondo_ED $version"
 #EOF

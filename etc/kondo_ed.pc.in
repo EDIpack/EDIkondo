@@ -3,10 +3,10 @@ exec_prefix=${prefix}/bin
 includedir=${prefix}/include
 libdir=${prefix}/lib
 
-Name: ED_Kondo
-Description: The ED_Kondo library
+Name: Kondo_ED
+Description: The Kondo_ED library
 Cflags: -I${includedir}
-Libs: -L${libdir} -led_kondo
+Libs: -L${libdir} -lkondo_ed
 Version:@VERSION@
 
 	

@@ -1,4 +1,4 @@
-# ED_Kondo: An Exact Diagonalization algorithm to solve a general Kondo problem. 
+# Kondo_ED: An Exact Diagonalization algorithm to solve a general Kondo problem. 
 
 This is a beta version softwware.
 
@@ -19,7 +19,7 @@ Installation is  available using CMake.
 
 Clone the repo:
 
-`git clone https://github.com/QcmPlab/ED_Kondo`
+`git clone https://github.com/QcmPlab/Kondo_ED`
 
 and from the just created directory make a standard out-of-source CMake compilation:
 
@@ -40,9 +40,9 @@ The `CMake` compilation can be controlled using the following additional variabl
 
 The library can be loaded into the operative system using one of the following, automatically generated, methods:    
 
-* environment module file `~/.modules.d/ed_kondo/<PLAT>`  
-* homebrew `bash` script `<PREFIX>/etc/config_ed_kondo.sh`
-* pkg-config file in `~/.pkg-config.d/ed_kondo.pc`
+* environment module file `~/.modules.d/kondo_ed/<PLAT>`  
+* homebrew `bash` script `<PREFIX>/etc/config_kondo_ed.sh`
+* pkg-config file in `~/.pkg-config.d/kondo_ed.pc`
 
 
 Method 2. has the advantage of making `uninstall` operation feasible. 
