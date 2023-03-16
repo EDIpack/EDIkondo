@@ -127,6 +127,7 @@ contains
           do i = 1,sectorI%Dim
              state_weight=abs(state_cvec(i))**2
              call build_op_Ns(i,IbUp,Ibdw,sectorI)
+             !
              nup= dble(IbUp)
              ndw= dble(IbDw)
              sz = (nup-ndw)/2d0
@@ -182,13 +183,15 @@ contains
        call write_observables()
        if(iNs==eNs)then
           write(LOGfile,"(A,"//str(iNs)//"f15.8)")&
-               "dens=",(dens(eNs+is),is=1,iNs)
+               "n_imp =",(dens(eNs+is),is=1,iNs)
+          write(LOGfile,"(A,"//str(iNs)//"f15.8)")&
+               "dn_imp=",(dens(eNs+is)-1d0/iNs,is=1,iNs)
        else
           write(LOGfile,"(A,"//str(max(1,Jkindx(1)-1))//"A15,"//str(iNs)//"f15.8)")&
-               "dens=",("",is=1,max(1,Jkindx(1)-1)),(dens(eNs+is),is=1,iNs)
+               "n_imp =",("",is=1,max(1,Jkindx(1)-1)),(dens(eNs+is),is=1,iNs)
        endif
        write(LOGfile,"(A,100f15.8,f15.8)")&
-            "dens=",(dens(is),is=1,eNs),sum(dens)
+            "n_ele =",(dens(is),is=1,eNs),sum(dens)
        if(Nspin==2)then
           write(LOGfile,"(A,10f18.12,A)")&
                "magZ=",(magz(is),is=1,Ns)
