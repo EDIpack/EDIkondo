@@ -77,14 +77,18 @@ contains
   !+-------------------------------------------------------------------+
   subroutine lanc_observables()
     integer                             :: iprob,istate,Nud(2,Ns),iud(2),jud(2),val,iimp
-    integer,dimension(2)                :: Indices,Jndices
+    ! integer,dimension(2)                :: Indices,Jndices
     integer,dimension(1,Ns)             :: Nups,Ndws  ![1,Ns]-[Norb,1+Nbath]
     integer,dimension(Ns)               :: IbUp,IbDw  ![Ns]
     real(8),dimension(Ns)               :: nup,ndw,Sz,nt
     complex(8),dimension(:),allocatable :: state_cvec
     real(8)                             :: boltzman_weight
     real(8)                             :: state_weight
-    !
+    integer,dimension(2*Ns)             :: Ib
+    integer,dimension(4)                :: Indices
+    integer                             :: iup,idw,ipup,ipdw,unit,m,sp
+    character(len=:), allocatable :: em,up,dw,db,string
+
     allocate(dens(Ns),dens_up(Ns),dens_dw(Ns))
     allocate(docc(Ns))
     allocate(magz(Ns),sz2(Ns,Ns),n2(Ns,Ns))
@@ -124,6 +128,7 @@ contains
        !
        if(MpiMaster)then
           call build_sector(isector,sectorI)
+
           do i = 1,sectorI%Dim
              state_weight=abs(state_cvec(i))**2
              call build_op_Ns(i,IbUp,Ibdw,sectorI)
@@ -176,7 +181,7 @@ contains
        !
     enddo
     !
-    !
+
     !
     !
     if(MPIMASTER)then
@@ -215,6 +220,75 @@ contains
     endif
 #endif
     !
+
+    em = '◦'
+    up = '↑'
+    dw = '↓'
+    db = '⇅'
+
+    do istate=1,state_list%trimd_size
+       isector = es_return_sector(state_list,istate)
+       Ei      = es_return_energy(state_list,istate)
+       !
+#ifdef _MPI
+       if(MpiStatus)then
+          call es_return_cvector(MpiComm,state_list,istate,state_cvec) 
+       else
+          call es_return_cvector(state_list,istate,state_cvec) 
+       endif
+#else
+       call es_return_cvector(state_list,istate,state_cvec)
+#endif
+       !
+       boltzman_weight = 1.d0 ; if(finiteT)boltzman_weight=exp(-(Ei-Egs)/temp)
+       boltzman_weight = boltzman_weight/zeta_function
+       !
+       if(MpiMaster)then
+          call build_sector(isector,sectorI)
+          open(free_unit(unit),file="Estate_indx"//str(istate)//".ed",status="new",action="write")
+          do i = 1,sectorI%Dim
+             m   = sectorI%H(1)%map(i)
+             Ib  = bdecomp(m,2*Ns)
+             if(abs(state_cvec(i))>=0d0)then
+                write(unit,"(F21.9,2I18,I2,I2,1x)",advance='no')abs(state_cvec(i))**2,i,m,eNs,iNs
+                write(unit,"("//str(2*Ns)//"I1,1x)",advance='no')Ib
+                string="ǀ"
+                do j=1,eNs
+                   sp = ib(j)+2*ib(j+eNs)+1                   
+                   select case(sp)
+                   case(1);string=string//em
+                   case(2);string=string//up
+                   case(3);string=string//dw
+                   case(4);string=string//db
+                   end select
+                enddo
+                string=string//"⟩"
+                write(unit,"("//str(len(string))//"A)",advance='no')string
+                string="ǀ"
+                do j=2*eNs+1,2*eNs+iNs
+                   sp = ib(j)+2*ib(j+iNs)+1
+                   select case(sp)
+                   case(1);string=string//em
+                   case(2);string=string//up
+                   case(3);string=string//dw
+                   case(4);string=string//db
+                   end select
+                enddo
+                string=string//"⟩"
+                write(unit,"("//str(len(string))//"A)",advance='no')string
+                write(unit,"(1x)",advance='yes')
+             endif
+          enddo
+          close(unit)
+          !
+          call delete_sector(sectorI)
+       endif
+       !
+       if(allocated(state_cvec))deallocate(state_cvec)      
+       !
+    enddo
+
+
     deallocate(dens,docc,dens_up,dens_dw,magz,sz2,n2,dens_impup,dens_impdw)
   end subroutine lanc_observables
 
@@ -365,15 +439,58 @@ contains
     write(unit,*)egs
     close(unit)
 
+
     unit = fopen("Sz_corr.ed",.true.)
     do io=1,Ns
        write(unit,"(90(F15.9,1X))")(sz2(io,jo),jo=1,io)
     enddo
     close(unit)         
 
+    unit = fopen("Sz_corr_el2el.ed",.true.)
+    do io=1,eNs
+       write(unit,"(90(F15.9,1X))")(sz2(io,jo),jo=1,io)
+    enddo
+    close(unit)         
+
+    unit = fopen("Sz_corr_imp2imp.ed",.true.)
+    do io=1,iNs
+       write(unit,"(90(F15.9,1X))")(sz2(eNs+io,eNs+jo),jo=1,io)
+    enddo
+    close(unit)         
+
+    unit = fopen("Sz_corr_imp2el.ed",.true.)
+    do io=1,iNs
+       write(unit,"(90(F15.9,1X))")(sz2(eNs+io,jo),jo=1,io)
+    enddo
+    close(unit)         
+
+
+
+
     unit = fopen("N_corr.ed",.true.)
     do io=1,Ns
        write(unit,"(90(F15.9,1X))")(n2(io,jo),jo=1,io)
+    enddo
+    close(unit)         
+
+
+    unit = fopen("N_corr_el2el.ed",.true.)
+    do io=1,eNs
+       write(unit,"(90(F15.9,1X))")(n2(io,jo),jo=1,io)
+    enddo
+    close(unit)         
+
+
+    unit = fopen("N_corr_imp2imp.ed",.true.)
+    do io=1,iNs
+       write(unit,"(90(F15.9,1X))")(n2(eNs+io,eNs+jo),jo=1,io)
+    enddo
+    close(unit)         
+
+
+    unit = fopen("N_corr_imp2el.ed",.true.)
+    do io=1,iNs
+       write(unit,"(90(F15.9,1X))")(n2(eNs+io,jo),jo=1,io)
     enddo
     close(unit)         
 
@@ -395,6 +512,22 @@ contains
     endif
   end subroutine write_observables
 
+
+
+
+  subroutine print_state(unit,i,Ntot,advance)
+    integer :: dim,i,j,unit,Ntot
+    logical :: advance
+    integer :: ivec(Ntot)
+    ivec = bdecomp(i,Ntot)
+    write(unit,"(A1)",advance="no")"|"
+    write(unit,"("//str(Ntot)//"I1)",advance="no")(ivec(j),j=1,Ntot)
+    if(advance)then
+       write(unit,"(A1)",advance="yes")">"
+    else
+       write(unit,"(A1)",advance="no")">"
+    endif
+  end subroutine print_state
 
 end MODULE ED_OBSERVABLES
 

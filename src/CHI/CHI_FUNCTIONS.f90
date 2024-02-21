@@ -35,8 +35,8 @@ contains
     !
     call build_chi_spin_impurities()
     if(any([chispin_flag(1:Norb)]))call build_chi_spin_electrons()
-    if(MPIMASTER)&
-         call write_GFmatrix(SpinChiMatrix,"ChiSpinMatrix"//str(ed_file_suffix)//".restart")
+    ! if(MPIMASTER)&
+    !      call write_GFmatrix(SpinChiMatrix,"ChiSpinMatrix"//str(ed_file_suffix)//".restart")
     !
   end subroutine build_chi_lattice
 
@@ -54,7 +54,7 @@ contains
     if(any([chispin_flag(1:Norb)]))call eval_chi_spin_electrons()
     !
     if(MPIMASTER)then
-       call ed_print_impChi()
+       !call ed_print_impChi()
        chiT= 0d0
        beta= 1d0/temp
        if(chispin_flag(Norb+1))then
@@ -63,7 +63,7 @@ contains
              chiT(io) = trapz(spinChi_tau(io,io,0:),0d0,beta)
           enddo
           unit = fopen("chiT_imp.ed",append=.true.)
-          write(unit,*)temp,(chiT(eNs+iimp),iimp=1,iNs)
+          write(unit,"(30F21.12)")temp,(chiT(eNs+iimp),iimp=1,iNs)
           close(unit)
        endif
        !
@@ -76,7 +76,7 @@ contains
              enddo
           enddo
           unit = fopen("chiT.ed",append=.true.)
-          write(unit,*)temp,(chiT(io),io=1,eNs)
+          write(unit,"(30F21.12)")temp,(chiT(io),io=1,eNs)
           close(unit)
        endif
     endif

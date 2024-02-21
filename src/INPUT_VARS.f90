@@ -20,7 +20,10 @@ MODULE ED_INPUT_VARS
   real(8)              :: Jk_z                !J_Kondo: Kondo coupling, z-axis component
   real(8)              :: Jk_xy               !J_Kondo: Kondo coupling, in-plane component
   real(8)              :: Vkondo              !V_kondo: (Vdir-Jk_z/4) direct exchange appearing in a real atomic system Vk*sum_rs n_b,r*n_imp,s
-  integer,allocatable  :: Jkindx(:)           !tags the position of the impurity sites with respect to the electron band, dim(Jkflags)=Nimp
+  integer,allocatable  :: Jkindx(:)           !tags the position of the impurity sites with respect to the electron band, dim(Jkindx)=Nsites(Norb+1)
+  integer,allocatable  :: Cindx(:)
+  integer,allocatable  :: Mindx(:)
+  real(8),allocatable  :: Bindx(:)
   !
   real(8)              :: xmu                 !chemical potential
   real(8)              :: temp                !temperature
@@ -35,6 +38,7 @@ MODULE ED_INPUT_VARS
 
   logical,allocatable  :: gf_flag(:)           !evaluate Green's functions for Norb+1
   logical,allocatable  :: chispin_flag(:)      !evaluate spin susceptibility for Norb+1
+  logical              :: chispin_imp_flag(3)  !set which imp spin Susceptibility to evaluate: 1=imp, 2=all, 3=imp-all
   logical,allocatable  :: oc_flag(:)           !evaluate Optical Conductivity and Drude Weight for Norb
   logical              :: offdiag_gf_flag      !flag to select the calculation of the off-diagonal GFs as selected by gf_flag.
   logical              :: offdiag_chispin_flag !flag to select the calculation of the off-diagonal spin Chi as selected by chispin_flag.
@@ -60,7 +64,7 @@ MODULE ED_INPUT_VARS
   integer              :: lanc_ncv_add        !Adds up to the size of the block to prevent it to become too small (Ncv=lanc_ncv_factor*Neigen+lanc_ncv_add)
   integer              :: lanc_nstates_sector !Max number of required eigenvalues per sector
   integer              :: lanc_dim_threshold  !Min dimension threshold to use Lanczos determination of the spectrum rather than Lapack based exact diagonalization.
-  
+
 
 
   !Some parameters for function dimension:
@@ -69,13 +73,13 @@ MODULE ED_INPUT_VARS
   integer              :: Lreal
   integer              :: Ltau
 
-  
+
   !LOG AND Hamiltonian UNITS
   !=========================================================
   character(len=100)   :: Tfile
   integer,save         :: LOGfile
 
-  
+
   !THIS IS JUST A RELOCATED GLOBAL VARIABLE
   character(len=200)   :: ed_input_file=""
 
@@ -125,7 +129,15 @@ contains
     !
     dim=Nsites(Norb+1)
     allocate(Jkindx(dim))
-    call parse_input_variable(Jkindx,"JKINDX",INPUTunit,default=(/( 1,i=1,size(Jkindx) )/),comment="labels of the Norb sites corresponding to the impurity sites, dim(Jkflags)=Nsites(Norb+1)")
+    allocate(Cindx(dim))
+    allocate(Mindx(dim))
+    allocate(Bindx(dim))
+    call parse_input_variable(Jkindx,"JKINDX",INPUTunit,default=(/( i,i=1,size(Jkindx) )/),comment="labels of the Norb sites corresponding to the impurity sites, dim(Jkindx)=Nsites(Norb+1)")
+    call parse_input_variable(Cindx,"Cindx",INPUTunit,default=(/( i,i=1,size(Cindx) )/),comment="labels of the imp sites where to evaluate Chi")
+    call parse_input_variable(Mindx,"Mindx",INPUTunit,default=(/( 0,i=1,size(Mindx) )/),comment="labels of the sites where to apply potential shifts")
+    call parse_input_variable(Bindx,"Bindx",INPUTunit,default=(/( 0d0,i=1,size(Bindx) )/),comment="local Magnetic field along Z at impurity sites")
+
+
     !
     call parse_input_variable(temp,"TEMP",INPUTunit,default=0.001d0,comment="temperature, at T=0 is used as a IR cut-off.")
     call parse_input_variable(ed_finite_temp,"ED_FINITE_TEMP",INPUTunit,default=.false.,comment="flag to select finite temperature method. note that if T then lanc_nstates_total must be > 1")
@@ -145,6 +157,7 @@ contains
     allocate(oc_flag(Norb))
     call parse_input_variable(gf_flag,"GF_FLAG",INPUTunit,default=(/( .false.,i=1,size(gf_flag) )/),comment="Flag to activate Greens functions calculation")
     call parse_input_variable(chispin_flag,"CHISPIN_FLAG",INPUTunit,default=(/( .false.,i=1,size(chispin_flag) )/),comment="Flag to activate spin susceptibility calculation.")
+    call parse_input_variable(chispin_imp_flag,"CHISPIN_IMP_FLAG",INPUTunit,default=[.true.,.false.,.false.],comment="set which imp spin Susceptibility to evaluate: 1=imp, 2=all, 3=imp-all.")
     call parse_input_variable(oc_flag,"OC_FLAG",INPUTunit,default=(/( .false.,i=1,size(oc_flag) )/),comment="Flag to activate Optical Conductivity and Drude weight calculation")
     call parse_input_variable(offdiag_gf_flag,"OFFDIAG_GF_FLAG",INPUTunit,default=.false.,comment="Flag to activate off-diagonal GF calculation as selected by gf_flag") 
     call parse_input_variable(offdiag_chispin_flag,"OFFDIAG_CHISPIN_FLAG",INPUTunit,default=.false.,comment="Flag to activate off-diagonal spin Chi calculation as selected by chispin_flag") 

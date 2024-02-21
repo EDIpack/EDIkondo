@@ -53,13 +53,22 @@ contains
     case default
        !Impurity GF
        do iimp=1,iNs
+          if(Cindx(iimp)==0)cycle
           io = eNs+iimp
           if(MPIMASTER)write(LOGfile,"(A)")"Build spinChi:"//" imp "//str(iimp)
           if(MPIMASTER)call start_timer
-          call allocate_GFmatrix(SpinChiMatrix(io,io),Nstate=state_list%size)
-          call allocate_GFmatrix(SpinChiMatrix(io,1),Nstate=state_list%size)
-          call allocate_GFmatrix(SpinChiMatrix(1,1),Nstate=state_list%size)
-          call lanc_build_spinChi_imp(iimp)
+          if(chispin_imp_flag(1))then
+             call allocate_GFmatrix(SpinChiMatrix(io,io),Nstate=state_list%size)
+             call lanc_build_spinChi_imp(iimp)
+          endif
+          if(chispin_imp_flag(2))then
+             call allocate_GFmatrix(SpinChiMatrix(io,1),Nstate=state_list%size)
+             call lanc_build_spinChi_all(iimp)
+          endif
+          if(chispin_imp_flag(3))then
+             call allocate_GFmatrix(SpinChiMatrix(1,1),Nstate=state_list%size)
+             call lanc_build_spinChi_imp_all(iimp)
+          endif
           if(MPIMASTER)call stop_timer(unit=LOGfile)
        enddo
     end select
@@ -74,6 +83,7 @@ contains
     !
     if(.not.chispin_flag(Norb+1))return
     do iimp=1,iNs
+       if(Cindx(iimp)==0)cycle
        if(MPIMASTER)write(LOGfile,"(A)")"Eval spinChi:"//" imp"//str(iimp)
        if(MPIMASTER)call start_timer
        select case(ed_method)
@@ -91,6 +101,7 @@ contains
     enddo
 
     do iimp=1,iNs
+       if(Cindx(iimp)==0)cycle
        io = eNs+iimp
        spinChi_w(io,1,:)   = 0.5d0*(spinChi_w(io,1,:) - spinChi_w(io,io,:) - spinChi_w(1,1,:))
        spinChi_tau(io,1,:) = 0.5d0*(spinChi_tau(io,1,:) - spinChi_tau(io,io,:) - spinChi_tau(1,1,:))
@@ -125,8 +136,6 @@ contains
     do istate=1,state_list%size
        !
        call allocate_GFmatrix(SpinChiMatrix(io,io),istate,Nchan=1)
-       call allocate_GFmatrix(SpinChiMatrix(io,1),istate,Nchan=1)
-       call allocate_GFmatrix(SpinChiMatrix(1,1),istate,Nchan=1)
        !
        isector    =  es_return_sector(state_list,istate)
        state_e    =  es_return_energy(state_list,istate)
@@ -159,6 +168,38 @@ contains
        deallocate(alfa_,beta_)
        if(allocated(vvinit))deallocate(vvinit)
        !
+       if(allocated(state_cvec))deallocate(state_cvec)
+    enddo
+    return
+  end subroutine lanc_build_spinChi_imp
+
+
+
+  subroutine lanc_build_spinChi_all(iimp)
+    integer,intent(in)                  :: iimp
+    integer                             :: io,ipos
+    real(8)                             :: Siorb,Sjorb
+    type(sector)                        :: sectorI,sectorJ
+    complex(8),dimension(:),allocatable :: state_cvec
+    !
+    io    = eNs + iimp
+    !
+    do istate=1,state_list%size
+       !
+       call allocate_GFmatrix(SpinChiMatrix(1,1),istate,Nchan=1)
+       !
+       isector    =  es_return_sector(state_list,istate)
+       state_e    =  es_return_energy(state_list,istate)
+#ifdef _MPI
+       if(MpiStatus)then
+          call es_return_cvector(MpiComm,state_list,istate,state_cvec) 
+       else
+          call es_return_cvector(state_list,istate,state_cvec) 
+       endif
+#else
+       call es_return_cvector(state_list,istate,state_cvec)
+#endif
+       !
        !
        !EVALUATE Sz_all|gs> 
        if(MpiMaster)then
@@ -179,6 +220,40 @@ contains
        deallocate(alfa_,beta_)
        if(allocated(vvinit))deallocate(vvinit)
        !
+       !
+       if(allocated(state_cvec))deallocate(state_cvec)
+    enddo
+    return
+  end subroutine lanc_build_spinChi_all
+
+
+
+
+  subroutine lanc_build_spinChi_imp_all(iimp)
+    integer,intent(in)                  :: iimp
+    integer                             :: io,ipos
+    real(8)                             :: Siorb,Sjorb
+    type(sector)                        :: sectorI,sectorJ
+    complex(8),dimension(:),allocatable :: state_cvec
+    !
+    io    = eNs + iimp
+    !
+    do istate=1,state_list%size
+       !
+       call allocate_GFmatrix(SpinChiMatrix(io,1),istate,Nchan=1)
+       !
+       isector    =  es_return_sector(state_list,istate)
+       state_e    =  es_return_energy(state_list,istate)
+#ifdef _MPI
+       if(MpiStatus)then
+          call es_return_cvector(MpiComm,state_list,istate,state_cvec) 
+       else
+          call es_return_cvector(state_list,istate,state_cvec) 
+       endif
+#else
+       call es_return_cvector(state_list,istate,state_cvec)
+#endif
+       !       
        !
        !EVALUATE (Sz_imp + Sz_all)|gs> = Sz_imp|gs> + Sz_all|gs>
        if(MpiMaster)then
@@ -204,12 +279,9 @@ contains
        if(allocated(state_cvec))deallocate(state_cvec)
     enddo
     return
-  end subroutine lanc_build_spinChi_imp
+  end subroutine lanc_build_spinChi_imp_all
 
 
-
-
-  
   !################################################################
 
 

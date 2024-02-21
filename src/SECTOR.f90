@@ -35,6 +35,7 @@ MODULE ED_SECTOR
   public :: state2indices
   public :: iup_index
   public :: idw_index
+  public :: get_indices
   !
   public :: twin_sector_order
   public :: get_twin_sector
@@ -477,6 +478,29 @@ contains
   end function idw_index
 
 
+
+
+  subroutine get_indices(m,indices)
+    integer :: m                !Fock space index
+    integer :: indices(4)       !iup,idw,ipup,ipdw
+    !
+    integer :: iel,ip
+    integer :: iup,idw
+    integer :: ipup,ipdw
+    !
+    iel= mod(m-1,2**(2*eNs))+1    
+    ip = (m-1)/2**eNs/2**eNs
+    !
+    ! call get_indices2(m,iel,ip)
+    !
+    iup=mod(iel-1,2**eNs)+1
+    idw=(iel-1)/2**eNs
+    !
+    ipup=mod(ip,2**iNs)
+    ipdw=(ip)/2**iNs
+    !
+    indices = [iup,idw,ipup,ipdw]
+  end subroutine get_indices
 
 
 

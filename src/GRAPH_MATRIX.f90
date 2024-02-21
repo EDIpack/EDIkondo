@@ -309,7 +309,6 @@ contains
 
 
 
-
   subroutine Hij_get_ispin(Hij,spin)
     complex(8),dimension(:,:) :: Hij
     integer                   :: spin

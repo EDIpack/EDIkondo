@@ -119,8 +119,8 @@ contains
           call splot(reg(suffix)//"_tau"//reg(ed_file_suffix)//".ed",tau,spinChi_tau(io,io,0:))
           ! call splot(reg(suffix)//"_realw"//reg(ed_file_suffix)//".ed",vr,spinChi_w(io,io,:))
           ! call splot(reg(suffix)//"_iv"//reg(ed_file_suffix)//".ed",vm,spinChi_iv(io,io,:))
-          suffix="spinChi_bath_imp"//str(iimp)
-          call splot(reg(suffix)//"_tau"//reg(ed_file_suffix)//".ed",tau,spinChi_tau(io,1,0:))
+          ! suffix="spinChi_bath_imp"//str(iimp)
+          ! call splot(reg(suffix)//"_tau"//reg(ed_file_suffix)//".ed",tau,spinChi_tau(io,1,0:))
        enddo
     endif
 
