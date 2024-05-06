@@ -13,8 +13,6 @@ MODULE KONDO_ED
        Jk_z          , &
        Jk_xy         , &
        Jkindx        , &
-       Mindx         , &
-       Bindx         , &
        Cindx         , &
        xmu           , &
        temp          , &

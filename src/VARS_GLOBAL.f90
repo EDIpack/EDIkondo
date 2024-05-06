@@ -163,6 +163,7 @@ MODULE ED_VARS_GLOBAL
 
   !Spin Susceptibilities
   !=========================================================
+  real(8),allocatable,dimension(:,:)               :: sum_spinChi
   real(8),allocatable,dimension(:,:,:)             :: spinChi_tau
   complex(8),allocatable,dimension(:,:,:)          :: spinChi_w
   complex(8),allocatable,dimension(:,:,:)          :: spinChi_iv

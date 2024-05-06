@@ -15,7 +15,6 @@
      do io=1,Ns
         htmp = htmp + Hdiag(1,io)*Nup(io) + Hdiag(Nspin,io)*Ndw(io)
      enddo
-
      !
      !> H_Int: Kanamori interaction part. 
      ! = \sum_\a U_\a*(n_{\a,up}*n_{\a,dw})

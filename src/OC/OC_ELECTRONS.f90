@@ -287,6 +287,7 @@ contains
     do istate=1,state_list%trimd_size     !Nstates
        if(.not.allocated(OcMatrix(iorb)%state(istate)%channel))cycle
        Ei =  es_return_energy(state_list,istate)
+       if(finiteT .AND. beta*(Ei-Egs)>-log(1d-20) )cycle
        if(finiteT)pesoBZ = exp(-beta*(Ei-Egs))/zeta_function
        Nchannels = size(OcMatrix(iorb)%state(istate)%channel)
        do ichan=1,Nchannels

@@ -60,10 +60,12 @@ contains
        if(chispin_flag(Norb+1))then
           do iimp=1,iNs
              io = eNs + iimp
-             chiT(io) = trapz(spinChi_tau(io,io,0:),0d0,beta)
+             !chiT(io) = trapz(spinChi_tau(io,io,0:),0d0,beta)
+             chiT(io) = sum_spinChi(io,io)
           enddo
           unit = fopen("chiT_imp.ed",append=.true.)
           write(unit,"(30F21.12)")temp,(chiT(eNs+iimp),iimp=1,iNs)
+          ! write(200,"(30F21.12)")temp,(sum_spinChi(eNs+iimp,eNs+iimp),iimp=1,iNs)
           close(unit)
        endif
        !
@@ -72,7 +74,8 @@ contains
              if(.not.chispin_flag(iorb))cycle
              do isite=1,Nsites(iorb)
                 io  = pack_indices(isite,iorb)
-                chiT(io) = trapz(spinChi_tau(io,io,:),0d0,beta)
+                !chiT(io) = trapz(spinChi_tau(io,io,:),0d0,beta)
+                chiT(io) = sum_spinChi(io,io)
              enddo
           enddo
           unit = fopen("chiT.ed",append=.true.)
@@ -91,15 +94,18 @@ contains
 
   subroutine setup_chif
     call allocate_grids
-    if(allocated(spinChi_tau))deallocate(spinChi_tau)
-    if(allocated(spinChi_w))deallocate(spinChi_w)
-    if(allocated(spinChi_iv))deallocate(spinChi_iv)
-    allocate(spinChi_tau(Ns,Ns,0:Ltau))
-    allocate(spinChi_w(Ns,Ns,Lreal))
-    allocate(spinChi_iv(Ns,Ns,0:Lmats))
-    spinChi_tau=zero
-    spinChi_w=zero
-    spinChi_iv=zero
+    if(allocated(sum_spinChi))deallocate(sum_spinChi)
+    ! if(allocated(spinChi_tau))deallocate(spinChi_tau)
+    ! if(allocated(spinChi_w))deallocate(spinChi_w)
+    ! if(allocated(spinChi_iv))deallocate(spinChi_iv)
+    allocate(sum_spinChi(Ns,Ns))
+    ! allocate(spinChi_tau(Ns,Ns,0:Ltau))
+    ! allocate(spinChi_w(Ns,Ns,Lreal))
+    ! allocate(spinChi_iv(Ns,Ns,0:Lmats))
+    sum_spinChi = zero
+    ! spinChi_tau=zero
+    ! spinChi_w=zero
+    ! spinChi_iv=zero
   end subroutine setup_chif
 
 end MODULE ED_CHI_FUNCTIONS

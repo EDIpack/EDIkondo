@@ -189,8 +189,8 @@ contains
        if(iNs==eNs)then
           write(LOGfile,"(A,"//str(iNs)//"f15.8)")&
                "n_imp =",(dens(eNs+is),is=1,iNs)
-          write(LOGfile,"(A,"//str(iNs)//"f15.8)")&
-               "dn_imp=",(dens(eNs+is)-1d0/iNs,is=1,iNs)
+          ! write(LOGfile,"(A,"//str(iNs)//"f15.8)")&
+          !      "dn_imp=",(dens(eNs+is)-1d0/iNs,is=1,iNs)
        else
           write(LOGfile,"(A,"//str(max(1,Jkindx(1)-1))//"A15,"//str(iNs)//"f15.8)")&
                "n_imp =",("",is=1,max(1,Jkindx(1)-1)),(dens(eNs+is),is=1,iNs)
@@ -198,8 +198,10 @@ contains
        write(LOGfile,"(A,100f15.8,f15.8)")&
             "n_ele =",(dens(is),is=1,eNs),sum(dens)
        if(Nspin==2)then
-          write(LOGfile,"(A,10f18.12,A)")&
-               "magZ=",(magz(is),is=1,Ns)
+          write(LOGfile,"(A,100f18.12,A)")&
+               "m bath=",(magz(is),is=1,eNs)
+          write(LOGfile,"(A,100f18.12,A)")&
+               "m  imp=",(magz(eNs+is),is=1,iNs)
        endif
        !
        ed_dens_up = dens_up
@@ -221,73 +223,74 @@ contains
 #endif
     !
 
-    em = '◦'
-    up = '↑'
-    dw = '↓'
-    db = '⇅'
 
-    do istate=1,state_list%trimd_size
-       isector = es_return_sector(state_list,istate)
-       Ei      = es_return_energy(state_list,istate)
-       !
-#ifdef _MPI
-       if(MpiStatus)then
-          call es_return_cvector(MpiComm,state_list,istate,state_cvec) 
-       else
-          call es_return_cvector(state_list,istate,state_cvec) 
-       endif
-#else
-       call es_return_cvector(state_list,istate,state_cvec)
-#endif
-       !
-       boltzman_weight = 1.d0 ; if(finiteT)boltzman_weight=exp(-(Ei-Egs)/temp)
-       boltzman_weight = boltzman_weight/zeta_function
-       !
-       if(MpiMaster)then
-          call build_sector(isector,sectorI)
-          open(free_unit(unit),file="Estate_indx"//str(istate)//".ed",status="new",action="write")
-          do i = 1,sectorI%Dim
-             m   = sectorI%H(1)%map(i)
-             Ib  = bdecomp(m,2*Ns)
-             if(abs(state_cvec(i))>=0d0)then
-                write(unit,"(F21.9,2I18,I2,I2,1x)",advance='no')abs(state_cvec(i))**2,i,m,eNs,iNs
-                write(unit,"("//str(2*Ns)//"I1,1x)",advance='no')Ib
-                string="ǀ"
-                do j=1,eNs
-                   sp = ib(j)+2*ib(j+eNs)+1                   
-                   select case(sp)
-                   case(1);string=string//em
-                   case(2);string=string//up
-                   case(3);string=string//dw
-                   case(4);string=string//db
-                   end select
-                enddo
-                string=string//"⟩"
-                write(unit,"("//str(len(string))//"A)",advance='no')string
-                string="ǀ"
-                do j=2*eNs+1,2*eNs+iNs
-                   sp = ib(j)+2*ib(j+iNs)+1
-                   select case(sp)
-                   case(1);string=string//em
-                   case(2);string=string//up
-                   case(3);string=string//dw
-                   case(4);string=string//db
-                   end select
-                enddo
-                string=string//"⟩"
-                write(unit,"("//str(len(string))//"A)",advance='no')string
-                write(unit,"(1x)",advance='yes')
-             endif
-          enddo
-          close(unit)
+    if(print_state_flag)then
+       em = '◦'
+       up = '↑'
+       dw = '↓'
+       db = '⇅'
+       do istate=1,state_list%trimd_size
+          isector = es_return_sector(state_list,istate)
+          Ei      = es_return_energy(state_list,istate)
           !
-          call delete_sector(sectorI)
-       endif
-       !
-       if(allocated(state_cvec))deallocate(state_cvec)      
-       !
-    enddo
-
+#ifdef _MPI
+          if(MpiStatus)then
+             call es_return_cvector(MpiComm,state_list,istate,state_cvec) 
+          else
+             call es_return_cvector(state_list,istate,state_cvec) 
+          endif
+#else
+          call es_return_cvector(state_list,istate,state_cvec)
+#endif
+          !
+          boltzman_weight = 1.d0 ; if(finiteT)boltzman_weight=exp(-(Ei-Egs)/temp)
+          boltzman_weight = boltzman_weight/zeta_function
+          !
+          if(MpiMaster)then
+             call build_sector(isector,sectorI)
+             open(free_unit(unit),file="Estate_indx"//str(istate)//".ed",status="new",action="write")
+             do i = 1,sectorI%Dim
+                m   = sectorI%H(1)%map(i)
+                Ib  = bdecomp(m,2*Ns)
+                if(abs(state_cvec(i))>=0d0)then
+                   write(unit,"(F21.9,2I18,I2,I2,1x)",advance='no')abs(state_cvec(i))**2,i,m,eNs,iNs
+                   write(unit,"("//str(2*Ns)//"I1,1x)",advance='no')Ib
+                   string="ǀ"
+                   do j=1,eNs
+                      sp = ib(j)+2*ib(j+eNs)+1                   
+                      select case(sp)
+                      case(1);string=string//em
+                      case(2);string=string//up
+                      case(3);string=string//dw
+                      case(4);string=string//db
+                      end select
+                   enddo
+                   string=string//"⟩"
+                   write(unit,"("//str(len(string))//"A)",advance='no')string
+                   string="ǀ"
+                   do j=2*eNs+1,2*eNs+iNs
+                      sp = ib(j)+2*ib(j+iNs)+1
+                      select case(sp)
+                      case(1);string=string//em
+                      case(2);string=string//up
+                      case(3);string=string//dw
+                      case(4);string=string//db
+                      end select
+                   enddo
+                   string=string//"⟩"
+                   write(unit,"("//str(len(string))//"A)",advance='no')string
+                   write(unit,"(1x)",advance='yes')
+                endif
+             enddo
+             close(unit)
+             !
+             call delete_sector(sectorI)
+          endif
+          !
+          if(allocated(state_cvec))deallocate(state_cvec)      
+          !
+       enddo
+    endif
 
     deallocate(dens,docc,dens_up,dens_dw,magz,sz2,n2,dens_impup,dens_impdw)
   end subroutine lanc_observables
@@ -426,6 +429,7 @@ contains
     unit = fopen("dens.ed",.true.)
     write(unit,"(90(F20.12,1X))")(dens(io),io=1,Ns)
     close(unit)
+
 
     unit = fopen("docc.ed",.true.)
     write(unit,"(90(F20.12,1X))")(docc(io),io=1,Ns)

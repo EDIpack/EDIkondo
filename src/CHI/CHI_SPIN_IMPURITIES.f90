@@ -90,26 +90,26 @@ contains
        case default
           io = eNs+iimp
           call lanc_eval_spinChi_impurity(io,io)
-          call lanc_eval_spinChi_impurity(io,1)
-          call lanc_eval_spinChi_impurity(1,1)
+          ! call lanc_eval_spinChi_impurity(io,1)
+          ! call lanc_eval_spinChi_impurity(1,1)
        case ('lapack','full')
           call full_eval_spinChi_impurity(io,io)
-          call full_eval_spinChi_impurity(io,1)
-          call full_eval_spinChi_impurity(1,1)
+          ! call full_eval_spinChi_impurity(io,1)
+          ! call full_eval_spinChi_impurity(1,1)
        end select
        if(MPIMASTER)call stop_timer(unit=LOGfile)
     enddo
 
-    do iimp=1,iNs
-       if(Cindx(iimp)==0)cycle
-       io = eNs+iimp
-       spinChi_w(io,1,:)   = 0.5d0*(spinChi_w(io,1,:) - spinChi_w(io,io,:) - spinChi_w(1,1,:))
-       spinChi_tau(io,1,:) = 0.5d0*(spinChi_tau(io,1,:) - spinChi_tau(io,io,:) - spinChi_tau(1,1,:))
-       spinChi_iv(io,1,:)  = 0.5d0*(spinChi_iv(io,1,:) - spinChi_iv(io,io,:) - spinChi_iv(1,1,:))
-       spinChi_w(1,io,:)   = spinChi_w(io,1,:)
-       spinChi_tau(1,io,:) = spinChi_tau(io,1,:)
-       spinChi_iv(1,io,:)  = spinChi_iv(io,1,:)
-    enddo
+    ! do iimp=1,iNs
+    !    if(Cindx(iimp)==0)cycle
+    !    io = eNs+iimp
+    !    spinChi_w(io,1,:)   = 0.5d0*(spinChi_w(io,1,:) - spinChi_w(io,io,:) - spinChi_w(1,1,:))
+    !    spinChi_tau(io,1,:) = 0.5d0*(spinChi_tau(io,1,:) - spinChi_tau(io,io,:) - spinChi_tau(1,1,:))
+    !    spinChi_iv(io,1,:)  = 0.5d0*(spinChi_iv(io,1,:) - spinChi_iv(io,io,:) - spinChi_iv(1,1,:))
+    !    spinChi_w(1,io,:)   = spinChi_w(io,1,:)
+    !    spinChi_tau(1,io,:) = spinChi_tau(io,1,:)
+    !    spinChi_iv(1,io,:)  = spinChi_iv(io,1,:)
+    ! enddo
     !
   end subroutine eval_chi_spin_impurities
 
@@ -352,15 +352,14 @@ contains
     integer                             :: Nstates,istate
     integer                             :: Nchannels,ichan
     integer                             :: Nexcs,iexc,ii
-    real(8)                             :: peso,de,pesoBZ,beta,Ei,Egs
+    real(8)                             :: peso,de,pesoBZ,beta,Ei,Egs,dh,f,fp,sum
     real(8),dimension(Ns,Ns,0:Ltau)     :: spinChi_tau_tmp
     complex(8),dimension(Ns,Ns,Lreal)   :: spinChi_w_tmp
     complex(8),dimension(Ns,Ns,0:Lmats) :: spinChi_iv_tmp
     !
     !
-
     if(.not.allocated(SpinChiMatrix(io,jo)%state)) then
-       print*, "CHI_SPIN WARNING: SpinChiMatrix%state not allocated. Nothing to do"
+       print*, "CHI_SPIN WARNING: SpinChiMatrix%state not allocated. Nothing to do",io,jo
        return
     endif
     !
@@ -370,11 +369,12 @@ contains
     !
     !
     !this is the total number of available states  == state_list%size
-    Nstates = size(SpinChiMatrix(io,jo)%state) 
-    call es_trim_size(state_list,temp,cutoff) 
+    Nstates = size(SpinChiMatrix(io,jo)%state)
+    call es_trim_size(state_list,temp,cutoff)
     do istate=1,state_list%trimd_size
        if(.not.allocated(SpinChiMatrix(io,jo)%state(istate)%channel))cycle
        Ei =  es_return_energy(state_list,istate)
+       if(finiteT .AND. (beta*(Ei-Egs)>-log(1d-20)) )cycle
        if(finiteT)pesoBZ = exp(-beta*(Ei-Egs))/zeta_function
        Nchannels = size(SpinChiMatrix(io,jo)%state(istate)%channel)
        do ichan=1,Nchannels
@@ -383,25 +383,56 @@ contains
           do iexc=1,Nexcs
              peso  = SpinChiMatrix(io,jo)%state(istate)%channel(ichan)%weight(iexc)*pesoBZ
              dE    = SpinChiMatrix(io,jo)%state(istate)%channel(ichan)%poles(iexc)
-             if(beta*dE > 1d-3)spinChi_iv(io,jo,0)=spinChi_iv(io,jo,0) + 2*peso*(1d0-exp(-beta*dE))/dE
-             do i=1,Lmats
-                spinChi_iv(io,jo,i)=spinChi_iv(io,jo,i) + peso*(1d0-exp(-beta*dE))*2d0*dE/(vm(i)**2+dE**2)
+
+             !Integrate:
+             dh = beta/(Ltau-1)/2d0
+             sum=0d0
+             do i=0,Ltau-1
+                j = i+1
+                !
+                if(i<Ltau/2)then
+                   f = peso*exp(-tau(i)*dE)
+                elseif(i>Ltau/2)then
+                   f = peso*exp(-(beta-tau(i))*dE)
+                else
+                   f = peso*0.5d0*(exp(-tau(Ltau/2)*dE)+exp(-(beta-tau(Ltau/2))*dE))
+                endif
+                !
+                !
+                if(j<Ltau/2)then
+                   fp = peso*exp(-tau(j)*dE)
+                elseif(j>Ltau/2)then
+                   fp = peso*exp(-(beta-tau(j))*dE)
+                else
+                   fp = peso*0.5d0*(exp(-tau(Ltau/2)*dE)+exp(-(beta-tau(Ltau/2))*dE))
+                endif
+
+                sum = sum+(fp+f)*dh
              enddo
+             sum_spinChi(io,jo) = sum_spinChi(io,jo) + sum
              !
-             !Symmetrize for low-T /large-beta, mostly occurring for zero T calculations
-             do i=0,Ltau/2-1
-                spinChi_tau(io,jo,i)=spinChi_tau(io,jo,i) + peso*exp(-tau(i)*dE)
-             enddo
-             spinChi_tau(io,jo,Ltau/2)=spinChi_tau(io,jo,Ltau/2) +&
-                  peso*0.5d0*(exp(-tau(Ltau/2)*dE)+exp(-(beta-tau(Ltau/2))*dE))
-             do i=Ltau/2+1,Ltau
-                spinChi_tau(io,jo,i)=spinChi_tau(io,jo,i) + peso*exp(-(beta-tau(i))*dE)
-             enddo
              !
-             do i=1,Lreal
-                spinChi_w(io,jo,i)=spinChi_w(io,jo,i) - &
-                     peso*(1d0-exp(-beta*dE))*( 1d0/(dcmplx(vr(i),eps) - dE) - 1d0/(dcmplx(vr(i),eps) + dE) )
-             enddo
+             ! if(beta*dE > 1d-3)spinChi_iv(io,jo,0)=spinChi_iv(io,jo,0) + 2*peso*(1d0-exp(-beta*dE))/dE
+             ! do i=1,Lmats
+             !    spinChi_iv(io,jo,i)=spinChi_iv(io,jo,i) + peso*(1d0-exp(-beta*dE))*2d0*dE/(vm(i)**2+dE**2)
+             ! enddo
+             ! !
+             ! !Symmetrize for low-T /large-beta, mostly occurring for zero T calculations
+             ! do i=0,Ltau/2-1
+             !    if(tau(i)*dE>-log(1d-20))cycle
+             !    spinChi_tau(io,jo,i)=spinChi_tau(io,jo,i) + peso*exp(-tau(i)*dE)
+             ! enddo
+             ! spinChi_tau(io,jo,Ltau/2)=spinChi_tau(io,jo,Ltau/2) +&
+             !      peso*0.5d0*(exp(-tau(Ltau/2)*dE)+exp(-(beta-tau(Ltau/2))*dE))
+             ! do i=Ltau/2+1,Ltau
+             !    if((beta-tau(i))*dE>-log(1d-20))cycle
+             !    spinChi_tau(io,jo,i)=spinChi_tau(io,jo,i) + peso*exp(-(beta-tau(i))*dE)
+             ! enddo
+             ! !
+             ! do i=1,Lreal
+             !    spinChi_w(io,jo,i)=spinChi_w(io,jo,i) - &
+             !         peso*(1d0-exp(-beta*dE))*( 1d0/(dcmplx(vr(i),eps) - dE) - 1d0/(dcmplx(vr(i),eps) + dE) )
+             ! enddo
           enddo
        enddo
     enddo
@@ -417,7 +448,6 @@ contains
   !############################################################################################
   !############################################################################################
   !############################################################################################
-
 
 
 

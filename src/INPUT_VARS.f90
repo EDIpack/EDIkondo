@@ -22,8 +22,6 @@ MODULE ED_INPUT_VARS
   real(8)              :: Vkondo              !V_kondo: (Vdir-Jk_z/4) direct exchange appearing in a real atomic system Vk*sum_rs n_b,r*n_imp,s
   integer,allocatable  :: Jkindx(:)           !tags the position of the impurity sites with respect to the electron band, dim(Jkindx)=Nsites(Norb+1)
   integer,allocatable  :: Cindx(:)
-  integer,allocatable  :: Mindx(:)
-  real(8),allocatable  :: Bindx(:)
   !
   real(8)              :: xmu                 !chemical potential
   real(8)              :: temp                !temperature
@@ -64,6 +62,9 @@ MODULE ED_INPUT_VARS
   integer              :: lanc_ncv_add        !Adds up to the size of the block to prevent it to become too small (Ncv=lanc_ncv_factor*Neigen+lanc_ncv_add)
   integer              :: lanc_nstates_sector !Max number of required eigenvalues per sector
   integer              :: lanc_dim_threshold  !Min dimension threshold to use Lanczos determination of the spectrum rather than Lapack based exact diagonalization.
+
+
+  logical :: print_state_flag
 
 
 
@@ -130,13 +131,8 @@ contains
     dim=Nsites(Norb+1)
     allocate(Jkindx(dim))
     allocate(Cindx(dim))
-    allocate(Mindx(dim))
-    allocate(Bindx(dim))
     call parse_input_variable(Jkindx,"JKINDX",INPUTunit,default=(/( i,i=1,size(Jkindx) )/),comment="labels of the Norb sites corresponding to the impurity sites, dim(Jkindx)=Nsites(Norb+1)")
     call parse_input_variable(Cindx,"Cindx",INPUTunit,default=(/( i,i=1,size(Cindx) )/),comment="labels of the imp sites where to evaluate Chi")
-    call parse_input_variable(Mindx,"Mindx",INPUTunit,default=(/( 0,i=1,size(Mindx) )/),comment="labels of the sites where to apply potential shifts")
-    call parse_input_variable(Bindx,"Bindx",INPUTunit,default=(/( 0d0,i=1,size(Bindx) )/),comment="local Magnetic field along Z at impurity sites")
-
 
     !
     call parse_input_variable(temp,"TEMP",INPUTunit,default=0.001d0,comment="temperature, at T=0 is used as a IR cut-off.")
@@ -184,7 +180,7 @@ contains
     !
     call parse_input_variable(Tfile,"Tfile",INPUTunit,default="temperature",comment="File containing the step in temperature to take, if any.")
     call parse_input_variable(LOGfile,"LOGFILE",INPUTunit,default=6,comment="LOG unit.")
-
+    call parse_input_variable(print_state_flag,"print_state_flag",INPUTunit,default=.false.,comment="exp! print states flag")
 
 #ifdef _MPI
     if(check_MPI())then
