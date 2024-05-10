@@ -550,6 +550,7 @@ contains
        call get_Nup(isector,nups)
        call get_Ndw(isector,ndws)
        if(ed_filling/=0 .AND. (abs(sum(Nups)+sum(Ndws)-ed_filling)>1) )cycle
+       if(SectorFlag    .AND. .not.(any(sector_list==isector)))cycle
        !
        jsector=getCDGsector(1,ispin,isector)
        if(jsector==0)cycle
@@ -625,6 +626,7 @@ contains
        call get_Ndw(isector,ndws)
        !
        if(ed_filling/=0 .AND. (sum(Nups)+sum(Ndws)/=ed_filling) )cycle
+       if(SectorFlag    .AND. .not.(any(sector_list==isector)))cycle
        !
        jsector=getCDGsector(1,ispin,isector)
        if(jsector==0)cycle

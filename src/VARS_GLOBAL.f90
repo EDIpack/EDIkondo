@@ -186,7 +186,7 @@ MODULE ED_VARS_GLOBAL
   real(8),allocatable,dimension(:,:)               :: OptCond_w
   type(GFmatrix),allocatable,dimension(:)          :: OcMatrix
   real(8),dimension(:),allocatable                 :: temperature_list
-
+  integer,dimension(:),allocatable                 :: sector_list
 
   !Frequency and time arrays:
   !=========================================================
@@ -201,6 +201,7 @@ MODULE ED_VARS_GLOBAL
   integer                                          :: site_indx_padding=4
   logical                                          :: Jhflag              !spin-exchange and pair-hopping flag.
   logical                                          :: finiteT             !flag for finite temperature calculation
+  logical                                          :: SectorFlag             !flag for finite temperature calculation
   logical                                          :: global_gf_flag
   logical                                          :: global_chi_flag
   logical                                          :: global_oc_flag

@@ -481,6 +481,7 @@ contains
        call get_Nup(isector,Iups)
        call get_Ndw(isector,Idws)
        if(ed_filling/=0 .AND. (sum(Iups)+sum(Idws)/=ed_filling) )cycle
+       if(SectorFlag    .AND. .not.(any(sector_list==isector)))cycle
        !
        call build_sector(isector,sectorI)
        !

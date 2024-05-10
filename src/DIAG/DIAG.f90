@@ -79,6 +79,7 @@ contains
           call get_Nup(isector,nups)
           call get_Ndw(isector,ndws)
           if(ed_filling/=0 .AND. (sum(Nups)+sum(Ndws)/=ed_filling) )cycle
+          if(SectorFlag    .AND. .not.(any(sector_list==isector)))cycle
           do i=1,getdim(isector)
              zeta_function=zeta_function+exp(-espace(isector)%e(i)/temp)
           enddo
@@ -130,6 +131,7 @@ contains
        call get_Ndw(isector,ndws)
        !
        if(ed_filling/=0 .AND. (sum(Nups)+sum(Ndws)/=ed_filling) )cycle sector
+       if(SectorFlag    .AND. .not.(any(sector_list==isector)))cycle sector
        if(.not.twin_mask(isector))cycle sector
        iter=iter+1
        !
@@ -368,6 +370,7 @@ contains
        call get_Ndw(isector,ndws)
        !
        if(ed_filling/=0 .AND. (abs(sum(Nups)+sum(Ndws)-ed_filling)>1) )cycle sector
+       if(SectorFlag    .AND. .not.(any(sector_list==isector)))cycle sector
        iter=iter+1
        !
        Dim      = getdim(isector)

@@ -143,6 +143,8 @@ contains
        endif
     endif
     !
+
+
     !allocate functions
     allocate(impGmats(Nspin,Ns,Ns,Lmats))
     allocate(impGreal(Nspin,Ns,Ns,Lreal))
@@ -233,8 +235,7 @@ contains
     integer                          :: isector,jsector,gsector,ksector,lsector
     integer                          :: unit,status,istate,ishift,isign,dim
     logical                          :: IOfile
-    integer                          :: list_len
-    integer,dimension(:),allocatable :: list_sector
+    integer                          :: Slen
     type(sector) :: sectorI,sectorJ,sectorK,sectorG,sectorL
     !
     !Store full dimension of the sectors:
@@ -270,6 +271,26 @@ contains
        write(LOGfile,"(A,I6,A,I9)")"Looking into ",count(twin_mask)," sectors out of ",Nsectors
     endif
     !
+
+    inquire(file=trim(Sfile)//".restart",exist=SectorFlag)
+    print*,SectorFlag
+    if(SectorFlag)then
+       ed_filling=0
+       Slen = file_length(trim(Sfile)//".restart")
+       allocate(sector_list(Slen))
+       open(free_unit(unit),file=trim(Sfile)//".restart")
+       do i=1,Slen
+          read(unit,*)Nup,Ndw
+          sector_list(i)=getSector(Nup,Ndw)
+       enddo
+       close(unit)
+    else
+       Slen=Nsectors
+       allocate(sector_list(Slen))
+       do isector=1,Nsectors
+          sector_list(isector)=isector
+       enddo
+    endif
     !
     getCsector  = 0
     getCDGsector= 0
