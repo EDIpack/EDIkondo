@@ -1,4 +1,4 @@
-# KondoED: an Exact Diagonalization algorithm for alkaline-eartch atoms Kondo-like problems. 
+# EDIkondo: an Exact Diagonalization algorithm for alkaline-eartch atoms Kondo-like problems. 
 (This is a beta version softwware)
 
 This is Lanczos-based diagonalization method for Kondo-like problems, exploiting distributed memory MPI parallelisation. 
