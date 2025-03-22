@@ -1,4 +1,4 @@
-MODULE KONDO_ED
+MODULE EDIKONDO
   USE ED_INPUT_VARS, only: &
        ed_read_input , &
        Nsites        , &
@@ -48,5 +48,5 @@ MODULE KONDO_ED
        ed_solve
 
 
-END MODULE KONDO_ED
+END MODULE EDIKONDO
 
