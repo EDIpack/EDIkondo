@@ -1,0 +1,15 @@
+edikondo_prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${edikondo_prefix}/bin
+includedir=${edikondo_prefix}/include
+libdir=${edikondo_prefix}/lib
+
+Name: Kondo_ED
+Description: The Kondo_ED library
+Cflags: -I${includedir}
+Libs: -L${libdir} -ledikondo
+Version:@VERSION@
+
+	
+
+
+ 
