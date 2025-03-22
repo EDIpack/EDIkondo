@@ -19,7 +19,7 @@ Installation is  available using CMake.
 
 Clone the repo:
 
-`git clone https://github.com/edipack/KondoED`
+`git clone https://github.com/edipack/EDIkondo`
 
 and from the just created directory make a standard out-of-source CMake compilation:
 
@@ -40,9 +40,9 @@ The `CMake` compilation can be controlled using the following additional variabl
 
 The library can be loaded into the operative system using one of the following, automatically generated, methods:    
 
-* environment module file `~/.modules.d/kondoed/<PLAT>`  
-* homebrew `bash` script `<PREFIX>/etc/config_Kondoed.sh`
-* pkg-config file in `~/.pkg-config.d/kondoed.pc`
+* environment module file `~/.modules.d/edikondo/<PLAT>`  
+* homebrew `bash` script `<PREFIX>/etc/config_edikondo.sh`
+* pkg-config file in `~/.pkg-config.d/edikondo.pc`
 
 
 Method 2. has the advantage of making `unload` operation feasible. 
