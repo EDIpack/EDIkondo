@@ -64,7 +64,7 @@ contains
     case ("lapack","full")
        call full_energy_kondo()
     end select
-    if(MPIMASTER)call stop_timer(unit=LOGfile)
+    if(MPIMASTER)call stop_timer()
   end subroutine energy_lattice
 
 

@@ -44,7 +44,7 @@ contains
     case('lapack','full')
        call ed_full_d
     end select
-    if(MPIMASTER)call stop_timer(unit=LOGfile)
+    if(MPIMASTER)call stop_timer()
   end subroutine diagonalize_lattice
 
 
@@ -88,7 +88,7 @@ contains
     !
     if(MPIMASTER.AND.ed_verbose>=2)write(LOGfile,"(A,F20.12)")'Z   =',zeta_function
     !
-    if(MPIMASTER)call stop_timer(unit=LOGfile)
+    if(MPIMASTER)call stop_timer()
     !
   end subroutine partition_function_lattice
 
@@ -255,7 +255,7 @@ contains
           !
        endif
        !
-       if(ed_verbose>=3.AND.MPIMASTER)call stop_timer(unit=LOGfile)
+       if(ed_verbose>=3.AND.MPIMASTER)call stop_timer()
        !
        if(ed_verbose>=4)then
           write(LOGfile,*)"EigValues: ",eig_values(:Neigen)
@@ -286,7 +286,13 @@ contains
           open(free_unit(unit),file="eigenvalues_list.ed",position='append',action='write')
           call print_eigenvalues_list(isector,eig_values(1:Neigen),unit,lanc_solve,mpiAllThreads)
           close(unit)
+          !
+          do i=1,Neigen
+             call print_fock_state(i,isector,eig_basis(:,i),eig_values(i))
+          enddo
+          !
        endif
+
        !
        if(allocated(eig_values))deallocate(eig_values)
        if(allocated(eig_basis_tmp))deallocate(eig_basis_tmp)
@@ -334,6 +340,80 @@ contains
   end subroutine ed_diag_d
 
 
+
+
+
+
+  subroutine print_fock_state(indx,isector,state_cvec,Ei)
+    integer                       :: indx,isector
+    complex(8),dimension(:)       :: state_cvec
+    type(sector)                  :: sectorI
+    real(8)                       :: Ei
+    integer,dimension(2*Ns)       :: Ib
+    integer                       :: Nups(1),Ndws(1),Indices(2)
+    integer                       :: i,j,unit,m,sp
+    character(len=:), allocatable :: em,up,dw,db,string
+    !
+    if(print_state_flag)then
+       em = '◦'
+       up = '↑'
+       dw = '↓'
+       db = '⇅'
+       !
+       call get_Nup(isector,nups)
+       call get_Ndw(isector,ndws)
+       !
+       call get_QuantumNumbers(isector,Ns,Indices)
+
+
+       if(MpiMaster)then
+          open(free_unit(unit),&
+               file="SectorState_indx"//str(indx)//"_Ns"//str(Nups(1))//"_"//str(Ndws(1))//".ed",&
+               status="new",action="write")
+          !
+          write(unit,"(I9,2I6)")isector,Indices
+          write(unit,*)Ei
+          call build_sector(isector,sectorI)
+          do i = 1,sectorI%Dim
+             m   = sectorI%H(1)%map(i)
+             Ib  = bdecomp(m,2*Ns)
+             if(abs(state_cvec(i))>=0d0)then
+                write(unit,"(F21.9,2I18,I2,I2,1x)",advance='no')abs(state_cvec(i))**2,i,m,eNs,iNs
+                write(unit,"("//str(2*Ns)//"I1,1x)",advance='no')Ib
+                string="ǀ"
+                do j=1,eNs
+                   sp = ib(j)+2*ib(j+eNs)+1                   
+                   select case(sp)
+                   case(1);string=string//em
+                   case(2);string=string//up
+                   case(3);string=string//dw
+                   case(4);string=string//db
+                   end select
+                enddo
+                string=string//"⟩"
+                write(unit,"("//str(len(string))//"A)",advance='no')string
+                string="ǀ"
+                do j=2*eNs+1,2*eNs+iNs
+                   sp = ib(j)+2*ib(j+iNs)+1
+                   select case(sp)
+                   case(1);string=string//em
+                   case(2);string=string//up
+                   case(3);string=string//dw
+                   case(4);string=string//db
+                   end select
+                enddo
+                string=string//"⟩"
+                write(unit,"("//str(len(string))//"A)",advance='no')string
+                write(unit,"(1x)",advance='yes')
+             endif
+          enddo
+          close(unit)
+          !
+          call delete_sector(sectorI)
+       endif
+       !
+    endif
+  end subroutine print_fock_state
 
 
 
@@ -390,7 +470,7 @@ contains
        if(MpiMaster)call eigh(espace(isector)%M, espace(isector)%e)
        if(dim==1)espace(isector)%M=one
        call delete_Hv_sector()
-       if(ed_verbose>=3.AND.MPIMASTER)call stop_timer(unit=LOGfile)
+       if(ed_verbose>=3.AND.MPIMASTER)call stop_timer()
        !
        Nprint=min(dim,lanc_nstates_sector)
        if(ed_verbose>=4)then
@@ -513,20 +593,22 @@ contains
     integer              :: unit,i,indices(2)
     logical              :: lanc,allt
     if(MPIMASTER)then
+       call get_QuantumNumbers(isector,Ns,Indices)
        if(lanc)then
           if(allt)then
-             write(unit,"(A9,A15)")" # Sector","Indices"
+             do i=1,size(eig_values)
+                write(unit,*)eig_values(i),isector,Indices,"#"
+             enddo
           else
-             write(unit,"(A10,A15)")" #T Sector","Indices"
+             do i=1,size(eig_values)
+                write(unit,*)eig_values(i),isector,Indices,"#T"
+             enddo
           endif
        else
-          write(unit,"(A10,A15)")" #X Sector","Indices"
+          do i=1,size(eig_values)
+             write(unit,*)eig_values(i),isector,Indices,"#X"
+          enddo
        endif
-       call get_QuantumNumbers(isector,Ns,Indices)
-       write(unit,"(I9,2I6)")isector,Indices
-       do i=1,size(eig_values)
-          write(unit,*)eig_values(i)
-       enddo
        write(unit,*)""
     endif
   end subroutine print_eigenvalues_list

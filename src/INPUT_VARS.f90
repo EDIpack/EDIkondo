@@ -24,8 +24,6 @@ MODULE ED_INPUT_VARS
   integer,allocatable  :: Cindx(:)
   !
   real(8)              :: xmu                 !chemical potential
-  real(8),allocatable  :: gB(:)               !conduction electrons Magnetic field amplitude
-  real(8),allocatable  :: eB(:)               !impurity electrons Magnetic field amplitude
   real(8)              :: temp                !temperature
   !
   real(8)              :: eps                 !broadening
@@ -33,7 +31,6 @@ MODULE ED_INPUT_VARS
   logical              :: HFmode              !flag for HF interaction form U(n-1/2)(n-1/2) VS Unn
   real(8)              :: cutoff              !cutoff for spectral summation
   real(8)              :: gs_threshold        !Energy threshold for ground state degeneracy loop up
-  real(8)              :: sb_field            !symmetry breaking field
   !
 
   logical,allocatable  :: gf_flag(:)           !evaluate Green's functions for Norb+1
@@ -135,16 +132,11 @@ contains
     allocate(Cindx(dim))
     call parse_input_variable(Jkindx,"JKINDX",INPUTunit,default=(/( i,i=1,size(Jkindx) )/),comment="labels of the Norb sites corresponding to the impurity sites, dim(Jkindx)=Nsites(Norb+1)")
     call parse_input_variable(Cindx,"Cindx",INPUTunit,default=(/( i,i=1,size(Cindx) )/),comment="labels of the imp sites where to evaluate Chi")
-    allocate(gB(dim))
-    allocate(eB(dim))
-    call parse_input_variable(gB,"GB",INPUTunit,default=(/( 0d0,i=1,size(gB) )/),comment="conduction electrons Magnetic field amplitude")
-    call parse_input_variable(eB,"EB",INPUTunit,default=(/( 0d0,i=1,size(eB) )/),comment="impurity electrons Magnetic field amplitude")
     !
     call parse_input_variable(temp,"TEMP",INPUTunit,default=0.001d0,comment="temperature, at T=0 is used as a IR cut-off.")
     call parse_input_variable(ed_finite_temp,"ED_FINITE_TEMP",INPUTunit,default=.false.,comment="flag to select finite temperature method. note that if T then lanc_nstates_total must be > 1")
     !
     call parse_input_variable(xmu,"XMU",INPUTunit,default=0.d0,comment="Chemical potential. If HFMODE=T, xmu=0 indicates half-filling condition.")
-    call parse_input_variable(sb_field,"SB_FIELD",INPUTunit,default=0.1d0,comment="Value of a symmetry breaking field for magnetic solutions.")
     !
     call parse_input_variable(wini,"WINI",INPUTunit,default=-5.d0,comment="Smallest real-axis frequency")
     call parse_input_variable(wfin,"WFIN",INPUTunit,default=5.d0,comment="Largest real-axis frequency")

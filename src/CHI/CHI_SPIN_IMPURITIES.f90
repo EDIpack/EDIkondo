@@ -69,7 +69,7 @@ contains
              call allocate_GFmatrix(SpinChiMatrix(1,1),Nstate=state_list%size)
              call lanc_build_spinChi_imp_all(iimp)
           endif
-          if(MPIMASTER)call stop_timer(unit=LOGfile)
+          if(MPIMASTER)call stop_timer()
        enddo
     end select
   end subroutine build_chi_spin_impurities
@@ -97,7 +97,7 @@ contains
           ! call full_eval_spinChi_impurity(io,1)
           ! call full_eval_spinChi_impurity(1,1)
        end select
-       if(MPIMASTER)call stop_timer(unit=LOGfile)
+       if(MPIMASTER)call stop_timer()
     enddo
 
     ! do iimp=1,iNs

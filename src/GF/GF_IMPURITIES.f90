@@ -54,7 +54,7 @@ contains
                      " spin"//str(ispin)
                 call allocate_GFmatrix(impGmatrix(ispin,eNs+iimp,eNs+iimp),Nstate=state_list%size)
                 call lanc_build_gf_impurity_diag(iimp,ispin)
-                if(MPIMASTER)call stop_timer(unit=LOGfile)
+                if(MPIMASTER)call stop_timer()
              enddo
           enddo
        endif
@@ -84,7 +84,7 @@ contains
           case ('lapack','full')
              call full_eval_gf_impurity(iimp,ispin)
           end select
-          if(MPIMASTER)call stop_timer(unit=LOGfile)
+          if(MPIMASTER)call stop_timer()
        enddo
     enddo
     !

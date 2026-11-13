@@ -64,7 +64,7 @@ contains
     case ("lapack","full")
        call full_observables()
     end select
-    if(MPIMASTER)call stop_timer(unit=LOGfile)
+    if(MPIMASTER)call stop_timer()
   end subroutine observables_lattice
 
 
@@ -243,8 +243,6 @@ contains
           call es_return_cvector(state_list,istate,state_cvec)
 #endif
           !
-          boltzman_weight = 1.d0 ; if(finiteT)boltzman_weight=exp(-(Ei-Egs)/temp)
-          boltzman_weight = boltzman_weight/zeta_function
           !
           if(MpiMaster)then
              call build_sector(isector,sectorI)
